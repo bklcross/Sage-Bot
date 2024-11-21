@@ -1,30 +1,50 @@
-require('dotenv').config();
+require("dotenv").config();
 
-const puppeteer = require('puppeteer');
+const puppeteer = require("puppeteer");
+
+const payload = {
+  quoteNumber: "CRU4Q-17685296",
+  input: "input",
+  input: "input",
+};
+
+const username = process.env.USERNAME;
+const password = process.env.PASSWORD;
 
 (async () => {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
 
-    // Use environment variables
-    const username = process.env.USERNAME;
-    const password = process.env.PASSWORD;
+  await page.setViewport({ width: 1920, height: 1080 });
 
-    console.log(username, password)
+  await page.goto("https://agents.sagesure.com/login.html");
 
-    // Navigate to the login page
-    await page.goto('https://my.sagesure.com/');
+  await page.type("#login-username", username);
+  await page.type("#login-password", password);
 
-    // Enter username and password
-    await page.type('#username', username);
-    await page.type('#password', password);
+  await page.click('button[type="submit"]');
 
-    // Submit the login form
-    // await page.click('#submit');
+  await page.goto(`https://agents.sagesure.com/quote/${payload.quoteNumber}/edit`);
 
-    // Wait for navigation
-    // await page.waitForNavigation();
+  await page.waitForSelector('#QTC-main', { visible: true });
 
-    await page.screenshot({ path: "./output/test.png" });
-    await browser.close();
+  await page.waitForSelector('.controlContainer[data-bdd="QTC Use Insurance Score Estimate? Input"]');
+
+  // ***** Start Form Fill *****
+  await page.$eval(
+    'input[name="InsuranceScoreRangeEstimateIndicator"][value="200"]',
+    (radio) => {
+      if (!radio.checked) {
+        radio.click();
+      }
+    }
+  );
+
+  await page.screenshot({ path: "./output/test.png" });
+  await browser.close();
 })();
+
+// await page.waitForNavigation();
+
+// await page.select('#dropdown-id', 'value-to-select');
+// await page.waitForSelector('[data-testid="loginErrorMessage"]');
