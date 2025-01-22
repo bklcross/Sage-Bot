@@ -1,17 +1,25 @@
 require("dotenv").config();
-
-const puppeteer = require("puppeteer");
-
-const payload = {
-  quoteNumber: "CRU4Q-17685296",
-  agentId: "4373034",
-};
+const { diligentEffort } = require("./src/diligentEffort");
+const { launch } = require("puppeteer");
+const { collectQuoteId } = require("./src/inquireQuoteId");
 
 const username = process.env.USERNAME;
 const password = process.env.PASSWORD;
+const agentId = process.env.AGENT_ID;
+
+const today = new Date();
+today.setDate(today.getDate() - 1);
+const formattedDate = `${String(today.getMonth() + 1).padStart(
+  2,
+  "0"
+)}/${String(today.getDate()).padStart(2, "0")}/${today.getFullYear()}`;
 
 (async () => {
-  const browser = await puppeteer.launch();
+  const quoteNumber = "CRU4Q-18214287"//await collectQuoteId();
+
+  console.log("quote number received: ", quoteNumber);
+
+  const browser = await launch();
   const page = await browser.newPage();
 
   await page.setViewport({ width: 1920, height: 1080 });
@@ -29,15 +37,14 @@ const password = process.env.PASSWORD;
     "https://agents.sagesure.com/home"
   );
 
-  await page.goto(
-    `https://agents.sagesure.com/quote/${payload.quoteNumber}/edit`
-  );
+  await page.goto(`https://agents.sagesure.com/quote/${quoteNumber}/edit`);
 
   await page.waitForSelector(
     '.controlContainer[data-bdd="QTC Use Insurance Score Estimate? Input"]'
   );
 
   // ***** Start Applicant Information and Loss History *****
+
   await page.$eval(
     'input[name="InsuranceScoreRangeEstimateIndicator"][value="200"]',
     (radio) => {
@@ -56,23 +63,26 @@ const password = process.env.PASSWORD;
     }
   );
 
-  await page.$eval(
-    'input[name="NewHomeOccupancy"][value="0"]',
-    (radio) => {
-      if (!radio.checked) {
-        radio.click();
-      }
+  await page.$eval('input[name="NewHomeOccupancy"][value="0"]', (radio) => {
+    if (!radio.checked) {
+      radio.click();
     }
+  });
+
+  await page.click(
+    'div[data-bdd="QTC Number of Claims in last 6 years Input"]'
   );
 
-  await page.click('div[data-bdd="QTC Number of Claims in last 6 years Input"]');
-
-  await page.waitForSelector('div[data-bdd="QTC Number of Claims in last 6 years Input"] .uit-react-select__control--menu-is-open');
+  await page.waitForSelector(
+    'div[data-bdd="QTC Number of Claims in last 6 years Input"] .uit-react-select__control--menu-is-open'
+  );
 
   await page.evaluate(() => {
-    const options = document.querySelectorAll('div[data-bdd="QTC Number of Claims in last 6 years Input"] .uit-react-select__option');
-    options.forEach(option => {
-      if (option.textContent.trim() === 'None') {
+    const options = document.querySelectorAll(
+      'div[data-bdd="QTC Number of Claims in last 6 years Input"] .uit-react-select__option'
+    );
+    options.forEach((option) => {
+      if (option.textContent.trim() === "None") {
         option.click();
       }
     });
@@ -80,56 +90,57 @@ const password = process.env.PASSWORD;
 
   await page.click('div[data-bdd="QTC Occupancy Usage Input"]');
 
-  await page.waitForSelector('div[data-bdd="QTC Occupancy Usage Input"] .uit-react-select__control--menu-is-open');
+  await page.waitForSelector(
+    'div[data-bdd="QTC Occupancy Usage Input"] .uit-react-select__control--menu-is-open'
+  );
 
   await page.evaluate(() => {
-    const options = document.querySelectorAll('div[data-bdd="QTC Occupancy Usage Input"] .uit-react-select__option');
-    options.forEach(option => {
-      if (option.textContent.trim() === 'Primary - Year Round') {
+    const options = document.querySelectorAll(
+      'div[data-bdd="QTC Occupancy Usage Input"] .uit-react-select__option'
+    );
+    options.forEach((option) => {
+      if (option.textContent.trim() === "Primary - Year Round") {
         option.click();
       }
     });
   });
 
-  await page.click('div[data-bdd="QTC Number of Months Rented or Held For Rental Input"]');
+  await page.click(
+    'div[data-bdd="QTC Number of Months Rented or Held For Rental Input"]'
+  );
 
-  await page.waitForSelector('div[data-bdd="QTC Number of Months Rented or Held For Rental Input"] .uit-react-select__control--menu-is-open');
+  await page.waitForSelector(
+    'div[data-bdd="QTC Number of Months Rented or Held For Rental Input"] .uit-react-select__control--menu-is-open'
+  );
 
   await page.evaluate(() => {
-    const options = document.querySelectorAll('div[data-bdd="QTC Number of Months Rented or Held For Rental Input"] .uit-react-select__option');
-    options.forEach(option => {
-      if (option.textContent.trim() === 'Not a Rental') {
+    const options = document.querySelectorAll(
+      'div[data-bdd="QTC Number of Months Rented or Held For Rental Input"] .uit-react-select__option'
+    );
+    options.forEach((option) => {
+      if (option.textContent.trim() === "Not a Rental") {
         option.click();
       }
     });
   });
 
-  await page.$eval(
-    'input[name="TrusteeBusiness"][value="200"]',
-    (radio) => {
-      if (!radio.checked) {
-        radio.click();
-      }
+  await page.$eval('input[name="TrusteeBusiness"][value="200"]', (radio) => {
+    if (!radio.checked) {
+      radio.click();
     }
-  );
+  });
 
-  await page.$eval(
-    'input[name="SkateboardRamp"][value="200"]',
-    (radio) => {
-      if (!radio.checked) {
-        radio.click();
-      }
+  await page.$eval('input[name="SkateboardRamp"][value="200"]', (radio) => {
+    if (!radio.checked) {
+      radio.click();
     }
-  );
+  });
 
-  await page.$eval(
-    'input[name="RoadAccess"][value="100"]',
-    (radio) => {
-      if (!radio.checked) {
-        radio.click();
-      }
+  await page.$eval('input[name="RoadAccess"][value="100"]', (radio) => {
+    if (!radio.checked) {
+      radio.click();
     }
-  );
+  });
 
   await page.$eval(
     'input[name="NativeBrushStructures"][value="200"]',
@@ -140,68 +151,54 @@ const password = process.env.PASSWORD;
     }
   );
 
-  await page.$eval(
-    'input[name="NativeBrushHeight"][value="100"]',
-    (radio) => {
-      if (!radio.checked) {
-        radio.click();
-      }
+  await page.$eval('input[name="NativeBrushHeight"][value="100"]', (radio) => {
+    if (!radio.checked) {
+      radio.click();
     }
-  );
+  });
 
-  await page.$eval(
-    'input[name="GrassHeight"][value="200"]',
-    (radio) => {
-      if (!radio.checked) {
-        radio.click();
-      }
+  await page.$eval('input[name="GrassHeight"][value="200"]', (radio) => {
+    if (!radio.checked) {
+      radio.click();
     }
-  );
+  });
 
-  await page.$eval(
-    'input[name="TreeHeight"][value="200"]',
-    (radio) => {
-      if (!radio.checked) {
-        radio.click();
-      }
+  await page.$eval('input[name="TreeHeight"][value="200"]', (radio) => {
+    if (!radio.checked) {
+      radio.click();
     }
-  );
+  });
 
-  await page.$eval(
-    'input[name="Vegetation"][value="100"]',
-    (radio) => {
-      if (!radio.checked) {
-        radio.click();
-      }
+  await page.$eval('input[name="Vegetation"][value="100"]', (radio) => {
+    if (!radio.checked) {
+      radio.click();
     }
-  );
+  });
 
-  await page.$eval(
-    'input[name="PropaneTanks"][value="200"]',
-    (radio) => {
-      if (!radio.checked) {
-        radio.click();
-      }
+  await page.$eval('input[name="PropaneTanks"][value="200"]', (radio) => {
+    if (!radio.checked) {
+      radio.click();
     }
-  );
+  });
 
-  await page.$eval(
-    'input[name="TwoWeekRental"][value="200"]',
-    (radio) => {
-      if (!radio.checked) {
-        radio.click();
-      }
+  await page.$eval('input[name="TwoWeekRental"][value="200"]', (radio) => {
+    if (!radio.checked) {
+      radio.click();
     }
-  );
+  });
 
   await page.click('div[data-bdd="QTC Construction Type Input"]');
 
-  await page.waitForSelector('div[data-bdd="QTC Construction Type Input"] .uit-react-select__control--menu-is-open');
+  await page.waitForSelector(
+    'div[data-bdd="QTC Construction Type Input"] .uit-react-select__control--menu-is-open'
+  );
 
   await page.evaluate(() => {
-    const options = document.querySelectorAll('div[data-bdd="QTC Construction Type Input"] .uit-react-select__option');
-    options.forEach(option => {
-      if (option.textContent.trim() === 'Frame') {
+    const options = document.querySelectorAll(
+      'div[data-bdd="QTC Construction Type Input"] .uit-react-select__option'
+    );
+    options.forEach((option) => {
+      if (option.textContent.trim() === "Frame") {
         option.click();
       }
     });
@@ -209,12 +206,16 @@ const password = process.env.PASSWORD;
 
   await page.click('div[data-bdd="QTC Exterior Wall Material Input"]');
 
-  await page.waitForSelector('div[data-bdd="QTC Exterior Wall Material Input"] .uit-react-select__control--menu-is-open');
+  await page.waitForSelector(
+    'div[data-bdd="QTC Exterior Wall Material Input"] .uit-react-select__control--menu-is-open'
+  );
 
   await page.evaluate(() => {
-    const options = document.querySelectorAll('div[data-bdd="QTC Exterior Wall Material Input"] .uit-react-select__option');
-    options.forEach(option => {
-      if (option.textContent.trim() === 'Stucco') {
+    const options = document.querySelectorAll(
+      'div[data-bdd="QTC Exterior Wall Material Input"] .uit-react-select__option'
+    );
+    options.forEach((option) => {
+      if (option.textContent.trim() === "Stucco") {
         option.click();
       }
     });
@@ -229,73 +230,49 @@ const password = process.env.PASSWORD;
     }
   );
 
-  await page.$eval(
-    'input[name="CircuitBreakers"][value="200"]',
-    (radio) => {
-      if (!radio.checked) {
-        radio.click();
-      }
+  await page.$eval('input[name="CircuitBreakers"][value="200"]', (radio) => {
+    if (!radio.checked) {
+      radio.click();
     }
-  );
+  });
 
-  await page.$eval(
-    'input[name="CircuitBreakers"][value="200"]',
-    (radio) => {
-      if (!radio.checked) {
-        radio.click();
-      }
+  await page.$eval('input[name="CircuitBreakers"][value="200"]', (radio) => {
+    if (!radio.checked) {
+      radio.click();
     }
-  );
+  });
 
   const isSelected = await page.evaluate(() => {
-    const yesRadioButton = document.querySelector('input[name="CentralAir"][value="100"]');
+    const yesRadioButton = document.querySelector(
+      'input[name="CentralAir"][value="100"]'
+    );
     return yesRadioButton.checked; // Check if "Yes" is selected
   });
 
   if (isSelected) {
     await page.click('div[data-bdd="QTC Condenser Units Input"]');
 
-    await page.waitForSelector('div[data-bdd="QTC Condenser Units Input"] .uit-react-select__control--menu-is-open');
+    await page.waitForSelector(
+      'div[data-bdd="QTC Condenser Units Input"] .uit-react-select__control--menu-is-open'
+    );
 
     await page.evaluate(() => {
-      const options = document.querySelectorAll('div[data-bdd="QTC Condenser Units Input"] .uit-react-select__option');
-      options.forEach(option => {
-        if (option.textContent.trim() === '1') {
+      const options = document.querySelectorAll(
+        'div[data-bdd="QTC Condenser Units Input"] .uit-react-select__option'
+      );
+      options.forEach((option) => {
+        if (option.textContent.trim() === "1") {
           option.click();
         }
       });
     });
   }
 
-  await page.click('#replacementCostBuildingAdapter');
+  await page.click("#replacementCostBuildingAdapter");
 
-  await page.waitForSelector('.continue-button.btn.btn-primary');
+  await page.waitForSelector(".continue-button.btn.btn-primary");
 
-  await page.click('.continue-button.btn.btn-primary');
-
-  const today = new Date();
-  today.setDate(today.getDate() - 1);
-  const formattedDate = `${String(today.getMonth() + 1).padStart(
-    2,
-    "0"
-  )}/${String(today.getDate()).padStart(
-    2,
-    "0"
-  )}/${today.getFullYear()}`;
-
-  // agent
-  await page.$eval(
-    'input[name="DeclinationProducerType"][value="100"]',
-    (radio) => {
-      if (!radio.checked) {
-        radio.click();
-      }
-    }
-  );
-
-  await page.click('div[data-bdd="QTC Agent License Number Input"]');
-
-  await page.type("#AgentLicenseNumber", payload.agentId);
+  await page.click(".continue-button.btn.btn-primary");
 
   // Other Occupancy
 
@@ -487,7 +464,10 @@ const password = process.env.PASSWORD;
     }
   }, "#RenovationYearWiring");
 
-  await page.type("#RenovationYearWiring",  String(Math.floor(Math.random() * (2000 - 1990 + 1)) + 1990));
+  await page.type(
+    "#RenovationYearWiring",
+    String(Math.floor(Math.random() * (2000 - 1990 + 1)) + 1990)
+  );
 
   await page.waitForSelector("#RenovationYearFurnace");
 
@@ -498,7 +478,10 @@ const password = process.env.PASSWORD;
     }
   }, "#RenovationYearFurnace");
 
-  await page.type("#RenovationYearFurnace", String(Math.floor(Math.random() * (2010 - 2001 + 1)) + 2001));
+  await page.type(
+    "#RenovationYearFurnace",
+    String(Math.floor(Math.random() * (2010 - 2001 + 1)) + 2001)
+  );
 
   await page.waitForSelector("#RenovationYearPlumbing");
 
@@ -509,10 +492,21 @@ const password = process.env.PASSWORD;
     }
   }, "#RenovationYearPlumbing");
 
-  
+  await page.type(
+    "#RenovationYearPlumbing",
+    String(Math.floor(Math.random() * (2000 - 1990 + 1)) + 1990)
+  );
 
-  await page.type("#RenovationYearPlumbing",  String(Math.floor(Math.random() * (2000 - 1990 + 1)) + 1990));
+  await diligentEffort(page)
 
+  // Perform action: Click on the element
+  await page.click("#AgentLicenseNumber");
+
+  // Take a screenshot and save it
   await page.screenshot({ path: "./output/test.png" });
+
+  console.log("Full run complete ... please review");
+
+  // Close the browser
   await browser.close();
 })();
